@@ -14,7 +14,7 @@ package gomobile_bind
 import "C"
 
 import (
-	_seq "golang.org/x/mobile/bind/seq"
+	_seq "github.com/SpiderOak/mobile/bind/seq"
 )
 
 // suppress the error if seq ends up unused

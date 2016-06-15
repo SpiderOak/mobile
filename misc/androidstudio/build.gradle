@@ -30,8 +30,8 @@ dependencies {
 version = '0.2.6'
 
 pluginBundle {
-  website = 'https://golang.org/x/mobile'
-  vcsUrl = 'https://golang.org/x/mobile'
+  website = 'https://github.com/SpiderOak/mobile'
+  vcsUrl = 'https://github.com/SpiderOak/mobile'
   description = 'Plugin for gomobile projects'
 
   plugins {

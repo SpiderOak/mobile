@@ -85,11 +85,11 @@ func goAndroidBind(pkgs []*build.Package, androidArchs []string) error {
 			return fmt.Errorf("failed to create the main package for android: %v", err)
 		}
 
-		p, err := ctx.Import("golang.org/x/mobile/bind", cwd, build.ImportComment)
+		p, err := ctx.Import("github.com/SpiderOak/mobile/bind", cwd, build.ImportComment)
 		if err != nil {
-			return fmt.Errorf(`"golang.org/x/mobile/bind" is not found; run go get golang.org/x/mobile/bind`)
+			return fmt.Errorf(`"github.com/SpiderOak/mobile/bind" is not found; run go get github.com/SpiderOak/mobile/bind`)
 		}
-		repo := filepath.Clean(filepath.Join(p.Dir, "..")) // golang.org/x/mobile directory.
+		repo := filepath.Clean(filepath.Join(p.Dir, "..")) // github.com/SpiderOak/mobile directory.
 
 		for _, pkg := range binder.pkgs {
 			pkgpath := strings.Replace(bindJavaPkg, ".", "/", -1)
@@ -138,7 +138,7 @@ var androidMainFile = []byte(`
 package main
 
 import (
-	_ "golang.org/x/mobile/bind/java"
+	_ "github.com/SpiderOak/mobile/bind/java"
 	_ "../gomobile_bind"
 )
 

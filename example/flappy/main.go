@@ -12,17 +12,17 @@ import (
 	"math/rand"
 	"time"
 
-	"golang.org/x/mobile/app"
-	"golang.org/x/mobile/event/key"
-	"golang.org/x/mobile/event/lifecycle"
-	"golang.org/x/mobile/event/paint"
-	"golang.org/x/mobile/event/size"
-	"golang.org/x/mobile/event/touch"
-	"golang.org/x/mobile/exp/gl/glutil"
-	"golang.org/x/mobile/exp/sprite"
-	"golang.org/x/mobile/exp/sprite/clock"
-	"golang.org/x/mobile/exp/sprite/glsprite"
-	"golang.org/x/mobile/gl"
+	"github.com/SpiderOak/mobile/app"
+	"github.com/SpiderOak/mobile/event/key"
+	"github.com/SpiderOak/mobile/event/lifecycle"
+	"github.com/SpiderOak/mobile/event/paint"
+	"github.com/SpiderOak/mobile/event/size"
+	"github.com/SpiderOak/mobile/event/touch"
+	"github.com/SpiderOak/mobile/exp/gl/glutil"
+	"github.com/SpiderOak/mobile/exp/sprite"
+	"github.com/SpiderOak/mobile/exp/sprite/clock"
+	"github.com/SpiderOak/mobile/exp/sprite/glsprite"
+	"github.com/SpiderOak/mobile/gl"
 )
 
 func main() {

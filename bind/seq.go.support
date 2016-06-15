@@ -16,7 +16,7 @@ import (
 	"errors"
 	"fmt"
 
-	_seq "golang.org/x/mobile/bind/seq"
+	_seq "github.com/SpiderOak/mobile/bind/seq"
 )
 
 func toError(s string) error {

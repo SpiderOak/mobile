@@ -80,7 +80,7 @@ func TestAndroidBuild(t *testing.T) {
 	if goos == "windows" {
 		os.Setenv("HOMEDRIVE", "C:")
 	}
-	cmdBuild.flag.Parse([]string{"golang.org/x/mobile/example/basic"})
+	cmdBuild.flag.Parse([]string{"github.com/SpiderOak/mobile/example/basic"})
 	ctx.BuildTags = []string{"tag1"}
 	err := runBuild(cmdBuild)
 	if err != nil {
@@ -100,7 +100,7 @@ func TestAndroidBuild(t *testing.T) {
 var androidBuildTmpl = template.Must(template.New("output").Parse(`GOMOBILE={{.GOPATH}}/pkg/gomobile
 WORK=$WORK
 mkdir -p $WORK/lib/armeabi-v7a
-GOOS=android GOARCH=arm CC=$GOMOBILE/android-{{.NDK}}/arm/bin/arm-linux-androideabi-gcc{{.EXE}} CXX=$GOMOBILE/android-{{.NDK}}/arm/bin/arm-linux-androideabi-g++{{.EXE}} CGO_ENABLED=1 GOARM=7 go build -p={{.NumCPU}} -pkgdir=$GOMOBILE/pkg_android_arm -tags="tag1" -x -buildmode=c-shared -o $WORK/lib/armeabi-v7a/libbasic.so golang.org/x/mobile/example/basic
+GOOS=android GOARCH=arm CC=$GOMOBILE/android-{{.NDK}}/arm/bin/arm-linux-androideabi-gcc{{.EXE}} CXX=$GOMOBILE/android-{{.NDK}}/arm/bin/arm-linux-androideabi-g++{{.EXE}} CGO_ENABLED=1 GOARM=7 go build -p={{.NumCPU}} -pkgdir=$GOMOBILE/pkg_android_arm -tags="tag1" -x -buildmode=c-shared -o $WORK/lib/armeabi-v7a/libbasic.so github.com/SpiderOak/mobile/example/basic
 `))
 
 func TestParseBuildTargetFlag(t *testing.T) {

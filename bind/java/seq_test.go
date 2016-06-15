@@ -21,9 +21,9 @@ import (
 // the Android SDK whose path is available through ANDROID_HOME environment variable.
 func TestJavaSeqTest(t *testing.T) {
 	runTest(t, []string{
-		"golang.org/x/mobile/bind/testpkg",
-		"golang.org/x/mobile/bind/testpkg/secondpkg",
-		"golang.org/x/mobile/bind/testpkg/simplepkg",
+		"github.com/SpiderOak/mobile/bind/testpkg",
+		"github.com/SpiderOak/mobile/bind/testpkg/secondpkg",
+		"github.com/SpiderOak/mobile/bind/testpkg/simplepkg",
 	}, "SeqTest")
 }
 
@@ -38,7 +38,7 @@ func TestJavaSeqTest(t *testing.T) {
 //
 // while running the benchmark to see the results.
 func TestJavaSeqBench(t *testing.T) {
-	runTest(t, []string{"golang.org/x/mobile/bind/benchmark"}, "SeqBench")
+	runTest(t, []string{"github.com/SpiderOak/mobile/bind/benchmark"}, "SeqBench")
 }
 
 func runTest(t *testing.T, pkgNames []string, javaCls string) {
@@ -50,7 +50,7 @@ func runTest(t *testing.T, pkgNames []string, javaCls string) {
 	}
 	if _, err := run("which gomobile"); err != nil {
 		t.Log("go install gomobile")
-		if _, err := run("go install golang.org/x/mobile/cmd/gomobile"); err != nil {
+		if _, err := run("go install github.com/SpiderOak/mobile/cmd/gomobile"); err != nil {
 			t.Fatalf("gomobile install failed: %v", err)
 		}
 		t.Log("gomobile init")

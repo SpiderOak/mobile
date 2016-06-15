@@ -75,7 +75,7 @@ import (
 	"hash"
 	"io"
 
-	"golang.org/x/mobile/internal/binres"
+	"github.com/SpiderOak/mobile/internal/binres"
 )
 
 // NewWriter returns a new Writer writing an APK file to w.

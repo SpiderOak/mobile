@@ -30,11 +30,11 @@ import (
 	"strings"
 	"sync"
 
-	"golang.org/x/mobile/event/lifecycle"
-	"golang.org/x/mobile/event/paint"
-	"golang.org/x/mobile/event/size"
-	"golang.org/x/mobile/event/touch"
-	"golang.org/x/mobile/geom"
+	"github.com/SpiderOak/mobile/event/lifecycle"
+	"github.com/SpiderOak/mobile/event/paint"
+	"github.com/SpiderOak/mobile/event/size"
+	"github.com/SpiderOak/mobile/event/touch"
+	"github.com/SpiderOak/mobile/geom"
 )
 
 var initThreadID uint64

@@ -18,7 +18,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"golang.org/x/mobile/bind"
+	"github.com/SpiderOak/mobile/bind"
 )
 
 // ctx, pkg, tmpdir in build.go
@@ -151,7 +151,7 @@ type binder struct {
 }
 
 func (b *binder) GenGoSupport(outdir string) error {
-	bindPkg, err := ctx.Import("golang.org/x/mobile/bind", "", build.FindOnly)
+	bindPkg, err := ctx.Import("github.com/SpiderOak/mobile/bind", "", build.FindOnly)
 	if err != nil {
 		return err
 	}
@@ -159,7 +159,7 @@ func (b *binder) GenGoSupport(outdir string) error {
 }
 
 func (b *binder) GenObjcSupport(outdir string) error {
-	objcPkg, err := ctx.Import("golang.org/x/mobile/bind/objc", "", build.FindOnly)
+	objcPkg, err := ctx.Import("github.com/SpiderOak/mobile/bind/objc", "", build.FindOnly)
 	if err != nil {
 		return err
 	}
@@ -231,7 +231,7 @@ func (b *binder) GenObjc(pkg *types.Package, allPkg []*types.Package, outdir str
 }
 
 func (b *binder) GenJavaSupport(outdir string) error {
-	javaPkg, err := ctx.Import("golang.org/x/mobile/bind/java", "", build.FindOnly)
+	javaPkg, err := ctx.Import("github.com/SpiderOak/mobile/bind/java", "", build.FindOnly)
 	if err != nil {
 		return err
 	}

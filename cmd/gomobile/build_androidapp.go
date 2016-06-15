@@ -168,7 +168,7 @@ func goAndroidBuild(pkg *build.Package, androidArchs []string) (map[string]bool,
 
 	for _, arch := range androidArchs {
 		toolchain := ndk.Toolchain(arch)
-		if nmpkgs[arch]["golang.org/x/mobile/exp/audio/al"] {
+		if nmpkgs[arch]["github.com/SpiderOak/mobile/exp/audio/al"] {
 			dst := "lib/" + toolchain.abi + "/libopenal.so"
 			src := dst
 			if arch == "arm" {

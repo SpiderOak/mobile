@@ -13,7 +13,7 @@ import (
 	"unicode"
 	"unicode/utf8"
 
-	"golang.org/x/mobile/bind"
+	"github.com/SpiderOak/mobile/bind"
 )
 
 func genPkg(p *types.Package, allPkg []*types.Package) {

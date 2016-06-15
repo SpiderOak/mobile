@@ -479,7 +479,7 @@ func (g *goGen) genPreamble() {
 	g.Printf(goPreamble, g.pkg.Name(), g.pkg.Path())
 	g.Printf("import (\n")
 	g.Indent()
-	g.Printf("_seq \"golang.org/x/mobile/bind/seq\"\n")
+	g.Printf("_seq \"github.com/SpiderOak/mobile/bind/seq\"\n")
 	for path := range g.imports {
 		g.Printf("%q\n", path)
 	}

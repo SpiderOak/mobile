@@ -18,9 +18,9 @@ import (
 	"runtime"
 	"testing"
 
-	"golang.org/x/mobile/event/size"
-	"golang.org/x/mobile/geom"
-	"golang.org/x/mobile/gl"
+	"github.com/SpiderOak/mobile/event/size"
+	"github.com/SpiderOak/mobile/geom"
+	"github.com/SpiderOak/mobile/gl"
 )
 
 func TestImage(t *testing.T) {
