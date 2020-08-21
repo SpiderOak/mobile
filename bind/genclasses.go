@@ -541,7 +541,7 @@ func (g *ClassGen) genGo(cls *java.Class) {
 	g.Printf("C.free(unsafe.Pointer(cls))\n")
 	// Before Go 1.11 clazz was a pointer value, an uintptr after.
 	g.Printf("if uintptr(clazz) == 0 {\n")
-	g.Printf("	return\n")
+	g.Printf("\tpanic(`unable to find class %q`)\n", strings.Replace(cls.FindName, ".", "/", -1))
 	g.Printf("}\n")
 	g.Printf("class_%s = clazz\n", cls.JNIName)
 	for _, fs := range cls.Funcs {

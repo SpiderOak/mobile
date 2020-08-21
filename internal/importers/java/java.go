@@ -242,6 +242,33 @@ func (j *Importer) Import(refs *importers.References) ([]*Class, error) {
 			JNIName:     JNIMangle(n),
 			PkgName:     emb.Name,
 			HasNoArgCon: true,
+			Funcs: []*FuncSet{
+				{
+					Name:   n,
+					GoName: "New",
+					Funcs: []*Func{{
+						FuncSig: FuncSig{
+							Name: "new", // or emb.Name
+							Desc: "()V",
+						},
+						JNIName:     JNIMangle(emb.Name),
+						Public:      true,
+						Final:       true,
+						Constructor: true,
+						Ret: &Type{
+							Kind:  Object,
+							Class: n,
+						},
+					}},
+					CommonSig: CommonSig{
+						HasRet: true,
+						Ret: &Type{
+							Kind:  Object,
+							Class: n,
+						},
+					},
+				},
+			},
 		}
 		for _, ref := range emb.Refs {
 			jpkg := strings.Replace(ref.Pkg, "/", ".", -1)

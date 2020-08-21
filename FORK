@@ -1,0 +1,6 @@
+# Changes
+#
+# 1. Panic when a Java class cannot be found.
+#
+# 2. Add Go constructor for generated Java wrappers of Go code to facilitate
+#    Java calling back into Go.
