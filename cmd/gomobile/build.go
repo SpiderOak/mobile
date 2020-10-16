@@ -221,6 +221,7 @@ var (
 	buildO          string      // -o
 	buildGcflags    string      // -gcflags
 	buildLdflags    string      // -ldflags
+	buildBuildmode  string      // -buildmode
 	buildTarget     string      // -target
 	buildTrimpath   bool        // -trimpath
 	buildWork       bool        // -work
@@ -234,6 +235,7 @@ func addBuildFlags(cmd *command) {
 	cmd.flag.StringVar(&buildO, "o", "", "")
 	cmd.flag.StringVar(&buildGcflags, "gcflags", "", "")
 	cmd.flag.StringVar(&buildLdflags, "ldflags", "", "")
+	cmd.flag.StringVar(&buildBuildmode, "buildmode", "", "")
 	cmd.flag.StringVar(&buildTarget, "target", "android", "")
 	cmd.flag.StringVar(&buildBundleID, "bundleid", "", "")
 	cmd.flag.StringVar(&buildIOSVersion, "iosversion", "7.0", "")
@@ -315,6 +317,9 @@ func goCmdAt(at string, subcmd string, srcs []string, env []string, args ...stri
 	}
 	if buildLdflags != "" {
 		cmd.Args = append(cmd.Args, "-ldflags", buildLdflags)
+	}
+	if buildBuildmode != "" {
+		cmd.Args = append(cmd.Args, "-buildmode", buildBuildmode)
 	}
 	if buildTrimpath {
 		cmd.Args = append(cmd.Args, "-trimpath")
