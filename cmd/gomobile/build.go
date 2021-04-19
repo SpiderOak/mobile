@@ -228,6 +228,7 @@ var (
 	buildIOSVersion string      // -iosversion
 	buildAndroidAPI int         // -androidapi
 	buildTags       stringsFlag // -tags
+	buildMod        string      // -mod
 )
 
 func addBuildFlags(cmd *command) {
@@ -243,6 +244,7 @@ func addBuildFlags(cmd *command) {
 	cmd.flag.BoolVar(&buildI, "i", false, "")
 	cmd.flag.BoolVar(&buildTrimpath, "trimpath", false, "")
 	cmd.flag.Var(&buildTags, "tags", "")
+	cmd.flag.StringVar(&buildMod, "mod", "", "")
 }
 
 func addBuildFlagsNVXWork(cmd *command) {
@@ -324,6 +326,16 @@ func goCmdAt(at string, subcmd string, srcs []string, env []string, args ...stri
 	}
 	cmd.Args = append(cmd.Args, args...)
 	cmd.Args = append(cmd.Args, srcs...)
+	cmd.Env = append([]string{}, env...)
+	cmd.Dir = at
+	return runCmd(cmd)
+}
+
+func goModVendorAt(at string, env []string) error {
+	cmd := exec.Command("go", "mod", "vendor")
+	if buildV {
+		cmd.Args = append(cmd.Args, "-v")
+	}
 	cmd.Env = append([]string{}, env...)
 	cmd.Dir = at
 	return runCmd(cmd)

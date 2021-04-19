@@ -41,7 +41,7 @@ func runVersion(cmd *command) (err error) {
 			return "", fmt.Errorf("cannot test gomobile binary: %v, %s", err, out)
 		}
 		if strings.TrimSpace(string(out)) != "false" {
-			return "", fmt.Errorf("binary is out of date, re-install it")
+			fmt.Fprintln(os.Stderr, "binary possibly out of date, re-install it")
 		}
 		return mobileRepoRevision()
 	}()

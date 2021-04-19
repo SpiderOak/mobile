@@ -61,28 +61,41 @@ func goIOSBind(gobind string, pkgs []*packages.Package, archs []string) error {
 
 	cmd = exec.Command("xcrun", "lipo", "-create")
 
-	modulesUsed, err := areGoModulesUsed()
+	modPath, err := goModPath()
 	if err != nil {
 		return err
 	}
+	modulesUsed := modPath != ""
 
-	for _, arch := range archs {
-		if err := writeGoMod("darwin", arch); err != nil {
+	gopath := fmt.Sprintf("GOPATH=%s%c%s", tmpdir, filepath.ListSeparator, goEnv("GOPATH"))
+	if modulesUsed {
+		err := writeGoMod(modPath, filepath.Join(tmpdir, "src"))
+		if err != nil {
 			return err
 		}
+		if buildMod == "vendor" {
+			err := copyVendor(
+				filepath.Dir(modPath),
+				filepath.Join(tmpdir, "src"),
+			)
+			if err != nil {
+				return err
+			}
+		}
+		env := []string{gopath}
+		// Run `go mod tidy` to force to create go.sum.
+		// Without go.sum, `go build` fails as of Go 1.16.
+		err = goModTidyAt(filepath.Join(tmpdir, "src"), env)
+		if err != nil {
+			return err
+		}
+	}
 
+	for _, arch := range archs {
 		env := darwinEnv[arch]
 		// Add the generated packages to GOPATH for reverse bindings.
 		gopath := fmt.Sprintf("GOPATH=%s%c%s", tmpdir, filepath.ListSeparator, goEnv("GOPATH"))
 		env = append(env, gopath)
-
-		// Run `go mod tidy` to force to create go.sum.
-		// Without go.sum, `go build` fails as of Go 1.16.
-		if modulesUsed {
-			if err := goModTidyAt(filepath.Join(tmpdir, "src"), env); err != nil {
-				return err
-			}
-		}
 
 		path, err := goIOSBindArchive(name, env, filepath.Join(tmpdir, "src"))
 		if err != nil {
@@ -166,7 +179,7 @@ func goIOSBind(gobind string, pkgs []*packages.Package, archs []string) error {
 		return err
 	}
 
-	var mmVals = struct {
+	mmVals := struct {
 		Module  string
 		Headers []string
 	}{

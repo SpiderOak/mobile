@@ -5,8 +5,6 @@
 package main
 
 import (
-	"bytes"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -226,104 +224,79 @@ func packagesConfig(targetOS string) *packages.Config {
 	return config
 }
 
-// getModuleVersions returns a module information at the directory src.
-func getModuleVersions(targetOS string, targetArch string, src string) (*modfile.File, error) {
-	cmd := exec.Command("go", "list")
-	cmd.Env = append(os.Environ(), "GOOS="+targetOS, "GOARCH="+targetArch)
-
-	tags := buildTags
-	if targetOS == "darwin" {
-		tags = append(tags, "ios")
-	}
-	// TODO(hyangah): probably we don't need to add all the dependencies.
-	cmd.Args = append(cmd.Args, "-m", "-json", "-tags="+strings.Join(tags, ","), "all")
-	cmd.Dir = src
-
-	output, err := cmd.Output()
-	if err != nil {
-		// Module information is not available at src.
-		return nil, nil
-	}
-
-	type Module struct {
-		Main    bool
-		Path    string
-		Version string
-		Dir     string
-		Replace *Module
-	}
-
-	f := &modfile.File{}
-	f.AddModuleStmt("gobind")
-	e := json.NewDecoder(bytes.NewReader(output))
-	for {
-		var mod *Module
-		err := e.Decode(&mod)
-		if err != nil && err != io.EOF {
-			return nil, err
-		}
-		if mod != nil {
-			if mod.Replace != nil {
-				p, v := mod.Replace.Path, mod.Replace.Version
-				if modfile.IsDirectoryPath(p) {
-					// replaced by a local directory
-					p = mod.Replace.Dir
-				}
-				f.AddReplace(mod.Path, mod.Version, p, v)
-			} else {
-				// When the version part is empty, the module is local and mod.Dir represents the location.
-				if v := mod.Version; v == "" {
-					f.AddReplace(mod.Path, mod.Version, mod.Dir, "")
-				} else {
-					f.AddRequire(mod.Path, v)
-				}
-			}
-		}
-		if err == io.EOF {
-			break
-		}
-	}
-	return f, nil
-}
-
-// writeGoMod writes go.mod file at $WORK/src when Go modules are used.
-func writeGoMod(targetOS string, targetArch string) error {
-	m, err := areGoModulesUsed()
+// writeGoMod writes go.mod file at $WORK/src when Go modules are
+// used.
+func writeGoMod(pkgModPath, workSrc string) error {
+	used, err := areGoModulesUsed()
 	if err != nil {
 		return err
 	}
-	// If Go modules are not used, go.mod should not be created because the dependencies might not be compatible with Go modules.
-	if !m {
+	// If Go modules are not used, go.mod should not be created
+	// because the dependencies might not be compatible with Go
+	// modules.
+	if !used {
 		return nil
 	}
+	buf, err := os.ReadFile(pkgModPath)
+	if err != nil {
+		return err
+	}
+	f, err := modfile.Parse(pkgModPath, buf, nil)
+	if err != nil {
+		return err
+	}
 
-	return writeFile(filepath.Join(tmpdir, "src", "go.mod"), func(w io.Writer) error {
-		f, err := getModuleVersions(targetOS, targetArch, ".")
+	pkgDir := filepath.Dir(pkgModPath)
+
+	// Update existing replace directives to use absolute paths.
+	for _, r := range f.Replace {
+		newPath := r.New.Path
+		switch {
+		case filepath.IsAbs(newPath),
+			strings.HasPrefix(newPath, "./"),
+			strings.HasPrefix(newPath, "../"):
+			newPath = filepath.Join(pkgDir, newPath)
+		}
+		err := f.AddReplace(r.Old.Path, r.Old.Version, newPath, r.New.Version)
 		if err != nil {
 			return err
 		}
-		if f == nil {
-			return nil
-		}
-		bs, err := f.Format()
-		if err != nil {
-			return err
-		}
-		if _, err := w.Write(bs); err != nil {
-			return err
-		}
-		return nil
-	})
+	}
+
+	// Add a replace directive for module itself.
+	v := f.Module.Mod
+	err = f.AddReplace(v.Path, v.Version, pkgDir, "")
+	if err != nil {
+		return err
+	}
+
+	// Replace the existing "module ..." statement with "module
+	// gobind".
+	err = f.AddModuleStmt("gobind")
+	if err != nil {
+		return err
+	}
+
+	buf, err = f.Format()
+	if err != nil {
+		return err
+	}
+	newModPath := filepath.Join(workSrc, "go.mod")
+	return os.WriteFile(newModPath, buf, 0644)
 }
 
 func areGoModulesUsed() (bool, error) {
-	out, err := exec.Command("go", "env", "GOMOD").Output()
+	path, err := goModPath()
 	if err != nil {
 		return false, err
 	}
-	outstr := strings.TrimSpace(string(out))
-	if outstr == "" {
-		return false, nil
+	return path != "", nil
+}
+
+func goModPath() (string, error) {
+	out, err := exec.Command("go", "env", "GOMOD").Output()
+	if err != nil {
+		return "", err
 	}
-	return true, nil
+	return strings.TrimSpace(string(out)), nil
 }

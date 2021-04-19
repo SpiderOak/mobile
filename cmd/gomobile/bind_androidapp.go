@@ -6,6 +6,7 @@ package main
 
 import (
 	"archive/zip"
+	"context"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -15,6 +16,8 @@ import (
 	"strconv"
 	"strings"
 
+	"golang.org/x/mobile/internal/fastwalk"
+	"golang.org/x/sync/errgroup"
 	"golang.org/x/tools/go/packages"
 )
 
@@ -52,41 +55,53 @@ func goAndroidBind(gobind string, pkgs []*packages.Package, androidArchs []strin
 
 	androidDir := filepath.Join(tmpdir, "android")
 
-	modulesUsed, err := areGoModulesUsed()
+	modPath, err := goModPath()
 	if err != nil {
 		return err
 	}
+	modulesUsed := modPath != ""
 
-	// Generate binding code and java source code only when processing the first package.
-	for _, arch := range androidArchs {
-		if err := writeGoMod("android", arch); err != nil {
-			return err
-		}
-
-		env := androidEnv[arch]
-		// Add the generated packages to GOPATH for reverse bindings.
-		gopath := fmt.Sprintf("GOPATH=%s%c%s", tmpdir, filepath.ListSeparator, goEnv("GOPATH"))
-		env = append(env, gopath)
-
-		// Run `go mod tidy` to force to create go.sum.
-		// Without go.sum, `go build` fails as of Go 1.16.
-		if modulesUsed {
-			if err := goModTidyAt(filepath.Join(tmpdir, "src"), env); err != nil {
-				return err
-			}
-		}
-
-		toolchain := ndk.Toolchain(arch)
-		err := goBuildAt(
-			filepath.Join(tmpdir, "src"),
-			"./gobind",
-			env,
-			"-buildmode=c-shared",
-			"-o="+filepath.Join(androidDir, "src/main/jniLibs/"+toolchain.abi+"/libgojni.so"),
-		)
+	workSrc := filepath.Join(tmpdir, "src")
+	gopath := fmt.Sprintf("GOPATH=%s%c%s", tmpdir, filepath.ListSeparator, goEnv("GOPATH"))
+	if modulesUsed {
+		err := writeGoMod(modPath, workSrc)
 		if err != nil {
 			return err
 		}
+		// Run "go mod tidy" to generate go.sum.
+		err = goModTidyAt(workSrc, []string{gopath})
+		if err != nil {
+			return err
+		}
+		err = goModVendorAt(workSrc, []string{gopath})
+		if err != nil {
+			return err
+		}
+	}
+
+	grp, _ := errgroup.WithContext(context.Background())
+	for _, arch := range androidArchs {
+		arch := arch
+		grp.Go(func() error {
+			env := androidEnv[arch]
+
+			// Add the generated packages to GOPATH for reverse bindings.
+			env = append(env, gopath)
+
+			toolchain := ndk.Toolchain(arch)
+			err := goBuildAt(
+				workSrc,
+				"./gobind",
+				env,
+				"-buildmode=c-shared",
+				"-o="+filepath.Join(androidDir, "src", "main",
+					"jniLibs", toolchain.abi, "libgojni.so"),
+			)
+			return err
+		})
+	}
+	if err := grp.Wait(); err != nil {
+		return err
 	}
 
 	jsrc := filepath.Join(tmpdir, "java")
@@ -94,6 +109,42 @@ func goAndroidBind(gobind string, pkgs []*packages.Package, androidArchs []strin
 		return err
 	}
 	return buildSrcJar(jsrc)
+}
+
+// copyVendor copies the vendor directory in srcPkgDir to
+// dstPkgDir.
+func copyVendor(srcPkgDir, dstPkgDir string) error {
+	srcDir := filepath.Join(srcPkgDir, "vendor")
+	dstDir := filepath.Join(dstPkgDir, "vendor")
+	err := os.MkdirAll(dstDir, 0755)
+	if err != nil {
+		return err
+	}
+	return fastwalk.Walk(srcDir, func(path string, mode os.FileMode) error {
+		rel, err := filepath.Rel(srcDir, path)
+		if err != nil {
+			return err
+		}
+
+		if mode.IsDir() {
+			return os.MkdirAll(filepath.Join(dstDir, rel), 0755)
+		}
+
+		dst, err := os.Create(filepath.Join(dstDir, rel))
+		if err != nil {
+			return err
+		}
+		defer dst.Close()
+
+		src, err := os.Open(path)
+		if err != nil {
+			return err
+		}
+		defer src.Close()
+
+		_, err = io.Copy(dst, src)
+		return err
+	})
 }
 
 func buildSrcJar(src string) error {
@@ -300,7 +351,6 @@ func buildJar(w io.Writer, srcDir string) error {
 	}
 
 	bClspath, err := bootClasspath()
-
 	if err != nil {
 		return err
 	}
