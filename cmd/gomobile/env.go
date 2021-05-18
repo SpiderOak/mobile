@@ -132,6 +132,18 @@ func envInit() (err error) {
 			if arch == "arm" {
 				androidEnv[arch] = append(androidEnv[arch], "GOARM=7")
 			}
+			for _, name := range []string{"CFLAGS", "LDFLAGS"} {
+				env, ok := os.LookupEnv("CGO_" + name + "_FOR_" + arch)
+				if !ok {
+					continue
+				}
+				exist := os.Getenv("CGO_CFLAGS")
+				if exist != "" {
+					env = exist + " " + env
+				}
+				androidEnv[arch] = append(androidEnv[arch],
+					"CGO_"+name+"="+env)
+			}
 		}
 	}
 
