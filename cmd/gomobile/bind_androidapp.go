@@ -69,7 +69,11 @@ func goAndroidBind(gobind string, pkgs []*packages.Package, androidArchs []strin
 			return err
 		}
 		// Run "go mod tidy" to generate go.sum.
-		err = goModTidyAt(workSrc, []string{gopath})
+		err = goModTidyAt(workSrc, []string{
+			gopath,
+			"GOCACHE=" + goEnv("GOCACHE"),
+			"GOMODCACHE=" + goEnv("GOMODCACHE"),
+		})
 		if err != nil {
 			return err
 		}
@@ -116,7 +120,7 @@ func goAndroidBind(gobind string, pkgs []*packages.Package, androidArchs []strin
 func copyVendor(srcPkgDir, dstPkgDir string) error {
 	srcDir := filepath.Join(srcPkgDir, "vendor")
 	dstDir := filepath.Join(dstPkgDir, "vendor")
-	err := os.MkdirAll(dstDir, 0755)
+	err := os.MkdirAll(dstDir, 0o755)
 	if err != nil {
 		return err
 	}
@@ -127,7 +131,7 @@ func copyVendor(srcPkgDir, dstPkgDir string) error {
 		}
 
 		if mode.IsDir() {
-			return os.MkdirAll(filepath.Join(dstDir, rel), 0755)
+			return os.MkdirAll(filepath.Join(dstDir, rel), 0o755)
 		}
 
 		dst, err := os.Create(filepath.Join(dstDir, rel))
@@ -345,7 +349,7 @@ func buildJar(w io.Writer, srcDir string) error {
 
 	dst := filepath.Join(tmpdir, "javac-output")
 	if !buildN {
-		if err := os.MkdirAll(dst, 0700); err != nil {
+		if err := os.MkdirAll(dst, 0o700); err != nil {
 			return err
 		}
 	}
